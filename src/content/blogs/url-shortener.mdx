@@ -1,0 +1,209 @@
+## Features of the URL Shortener
+
+- **Shorten URLs**: Convert long URLs into concise, user-friendly links.
+- **Analytics**: Track the number of clicks for each short link.
+- **Status Management**: Enable or disable links as needed.
+- **QR Code Generation**: Easily share URLs with QR codes.
+
+---
+
+## Step 1: Initialize the Project
+
+Start by creating a new Next.js project:
+
+```bash
+npx create-next-app@14 url-shortener --ts --use-npm
+```
+
+During the setup, choose the **App Router** option for modern routing features.
+
+---
+
+## Step 2: Set Up the Database
+
+### Create a Neon Database
+
+1. Sign up at [Neon](https://neon.tech) and create a PostgreSQL database.
+2. Save the database credentials, including:
+   - **Host**
+   - **Username**
+   - **Password**
+   - **Database Name**
+
+### Install Drizzle ORM and Neon Packages
+
+Install the required dependencies for database integration:
+
+```bash
+npm install drizzle-orm drizzle-orm/neon-serverless drizzle-kit
+```
+
+---
+
+## Step 3: Define the Database Schema
+
+Create a file `db/schema.ts` to define the database schema:
+
+```ts
+import {
+  pgTable,
+  serial,
+  varchar,
+  integer,
+  boolean,
+  timestamp,
+} from "drizzle-orm/pg-core";
+
+export const urls = pgTable("urls", {
+  id: serial("id").primaryKey(),
+  originalUrl: varchar("original_url", { length: 500 }),
+  shortUrl: varchar("short_url", { length: 50 }),
+  clicks: integer("clicks").default(0),
+  status: boolean("status").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+```
+
+Update your Drizzle configuration to use this schema.
+
+---
+
+## Step 4: Build the Backend
+
+### API Routes for Shortening URLs
+
+Create an API route for handling URL shortening. In `app/api/shorten/route.ts`:
+
+```ts
+import { NextResponse } from "next/server";
+import { db } from "../../lib/db";
+import { urls } from "../../db/schema";
+
+export async function POST(request: Request) {
+  const { originalUrl } = await request.json();
+  const shortUrl = generateShortUrl(); // Implement this function
+
+  await db.insert(urls).values({ originalUrl, shortUrl });
+
+  return NextResponse.json({ shortUrl });
+}
+
+function generateShortUrl() {
+  return Math.random().toString(36).substring(2, 8);
+}
+```
+
+### API Routes for Redirection
+
+Handle redirection in `app/[shortUrl]/route.ts`:
+
+```ts
+import { NextResponse } from "next/server";
+import { db } from "../../lib/db";
+import { urls } from "../../db/schema";
+
+export async function GET(
+  request: Request,
+  { params }: { params: { shortUrl: string } }
+) {
+  const shortUrl = params.shortUrl;
+  const url = await db
+    .select()
+    .from(urls)
+    .where(urls.shortUrl.eq(shortUrl))
+    .first();
+
+  if (url) {
+    await db
+      .update(urls)
+      .set({ clicks: url.clicks + 1 })
+      .where(urls.id.eq(url.id));
+    return NextResponse.redirect(url.originalUrl);
+  }
+
+  return NextResponse.json({ error: "URL not found" }, { status: 404 });
+}
+```
+
+---
+
+## Step 5: Frontend Implementation
+
+### Create the Form Component
+
+Add a form for users to submit URLs in `app/page.tsx`:
+
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export default function Home() {
+  const [originalUrl, setOriginalUrl] = useState("");
+  const [shortUrl, setShortUrl] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const response = await fetch("/api/shorten", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ originalUrl }),
+    });
+    const data = await response.json();
+    setShortUrl(data.shortUrl);
+  };
+
+  return (
+    <div>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="url"
+          placeholder="Enter URL"
+          value={originalUrl}
+          onChange={(e) => setOriginalUrl(e.target.value)}
+          required
+        />
+        <button type="submit">Shorten</button>
+      </form>
+      {shortUrl && <p>Your short URL: {shortUrl}</p>}
+    </div>
+  );
+}
+```
+
+---
+
+## Step 6: Add QR Code Generation
+
+Use a library like `qrcode.react` to generate QR codes:
+
+```bash
+npm install qrcode.react
+```
+
+Update your component:
+
+```tsx
+import { QRCode } from "qrcode.react";
+
+{
+  shortUrl && (
+    <div>
+      <p>Your short URL: {shortUrl}</p>
+      <QRCode value={shortUrl} />
+    </div>
+  );
+}
+```
+
+---
+
+## Step 7: Deploy the Application
+
+1. Deploy your app to a platform like [Vercel](https://vercel.com).
+2. Ensure the database connection string is set as an environment variable.
+
+---
+
+With this, you now have a fully functional URL shortener application! Customize it further to suit your needs.

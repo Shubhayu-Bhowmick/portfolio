@@ -1,0 +1,246 @@
+# How to Build a Blog App with Next.js 15 and Sanity.io
+
+In this guide, I’ll walk you through the entire process of setting up a blog app using **Next.js 15** and **Sanity.io**. This combination allows for a fast, SEO-friendly, and dynamic blog with an intuitive content management system.
+
+## Why Choose Next.js and Sanity.io?
+
+- **Next.js 15**: A powerful React framework with optimized server-side rendering (SSR), static site generation (SSG), and API routes.
+- **Sanity.io**: A flexible and headless CMS with a user-friendly content studio and a robust querying language (GROQ).
+
+## Prerequisites
+
+Before starting, ensure you have the following installed:
+
+- Node.js (LTS version)
+- npm or yarn
+- Basic understanding of React and JavaScript
+
+---
+
+## Step 1: Initialize the Next.js App
+
+First, create a new Next.js project:
+
+```bash
+npx create-next-app@15 blog-app
+```
+
+- Select **TypeScript** for type safety.
+- Choose **Tailwind CSS** for styling.
+
+Navigate into the project directory:
+
+```bash
+cd blog-app
+```
+
+Run the development server to ensure everything works:
+
+```bash
+npm run dev
+```
+
+Visit `http://localhost:3000` to see your default Next.js app.
+
+---
+
+## Step 2: Set Up Sanity.io
+
+Sanity.io is where your blog content will be managed. Let’s initialize a new Sanity project:
+
+### Install Sanity CLI
+
+```bash
+npm install -g @sanity/cli
+```
+
+### Initialize Sanity Studio
+
+Run the following command to create a new Sanity project:
+
+```bash
+sanity init
+```
+
+Follow the prompts:
+
+- **Project name**: `blog-app`
+- **Dataset**: `production` (default)
+- **Project template**: Blog schema or empty project.
+
+Navigate into the Sanity Studio directory and start it:
+
+```bash
+cd blog-app-studio
+sanity start
+```
+
+Sanity Studio will open in your browser at `http://localhost:3333`. This is where you’ll create and manage your blog content.
+
+---
+
+## Step 3: Define the Blog Post Schema
+
+In your Sanity Studio, define the structure for your blog posts. Edit the `schema.js` file (or create a new schema file) to include fields like `title`, `slug`, `content`, and `author`:
+
+```javascript
+export default {
+  name: "post",
+  type: "document",
+  title: "Post",
+  fields: [
+    {
+      name: "title",
+      type: "string",
+      title: "Title",
+    },
+    {
+      name: "slug",
+      type: "slug",
+      title: "Slug",
+      options: {
+        source: "title",
+        maxLength: 96,
+      },
+    },
+    {
+      name: "content",
+      type: "array",
+      title: "Content",
+      of: [{ type: "block" }],
+    },
+    {
+      name: "author",
+      type: "reference",
+      to: [{ type: "author" }],
+    },
+  ],
+};
+```
+
+Restart the Sanity Studio to apply changes:
+
+```bash
+sanity start
+```
+
+---
+
+## Step 4: Configure Sanity in Next.js
+
+Install the Sanity client in your Next.js app:
+
+```bash
+npm install next-sanity
+```
+
+Create a `sanity.js` file in your `lib` folder to configure the Sanity client:
+
+```typescript
+import { createClient } from "next-sanity";
+
+export const client = createClient({
+  projectId: "yourProjectId", // Found in sanity.json
+  dataset: "production",
+  apiVersion: "2023-01-01", // Use current date
+  useCdn: false, // `false` if you want fresh data
+});
+```
+
+---
+
+## Step 5: Fetch Data from Sanity
+
+Use GROQ (Sanity’s query language) to fetch data. Add a function to fetch blog posts in your `lib/sanity.js`:
+
+```typescript
+export const getPosts = async () => {
+  return await client.fetch(`*[_type == "post"]{
+    title,
+    slug,
+    content,
+    "author": author->name,
+    publishedAt
+  }`);
+};
+```
+
+---
+
+## Step 6: Display Blog Posts
+
+Create a `pages/blog/index.tsx` file to display the blog posts:
+
+```tsx
+import { getPosts } from "@/lib/sanity";
+
+export async function getStaticProps() {
+  const posts = await getPosts();
+  return { props: { posts } };
+}
+
+export default function BlogPage({ posts }) {
+  return (
+    <div>
+      <h1 className="text-4xl font-bold mb-8">Blog</h1>
+      <ul>
+        {posts.map((post) => (
+          <li key={post.slug}>
+            <a href={`/blog/${post.slug}`} className="text-xl text-blue-500">
+              {post.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+---
+
+## Step 7: Create Dynamic Blog Post Pages
+
+Set up dynamic routing for individual blog posts. Create `pages/blog/[slug].tsx`:
+
+```tsx
+import { getPosts, client } from "@/lib/sanity";
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  const paths = posts.map((post) => ({ params: { slug: post.slug } }));
+  return { paths, fallback: false };
+}
+
+export async function getStaticProps({ params }) {
+  const { slug } = params;
+  const post = await client.fetch(
+    `*[_type == "post" && slug.current == $slug][0]`,
+    { slug }
+  );
+  return { props: { post } };
+}
+
+export default function BlogPost({ post }) {
+  return (
+    <article>
+      <h1 className="text-4xl font-bold">{post.title}</h1>
+      <p className="text-gray-600">{post.content}</p>
+    </article>
+  );
+}
+```
+
+---
+
+## Step 8: Style the App with Tailwind CSS
+
+Tailwind CSS is already set up if you chose it during project initialization. Customize styles in the `globals.css` file or directly within your components.
+
+---
+
+## Final Thoughts
+
+By combining **Next.js 15** and **Sanity.io**, you’ve built a dynamic, SEO-friendly blog app. Sanity Studio makes content management easy, while Next.js ensures a fast and modern frontend. From here, you can enhance the app with features like **comments**, **search**, or **category filters**.
+
+Have fun building! 🚀
