@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Linkedin, Twitter, Github, Youtube } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { posts } from "@/content/blogs/blogs";
@@ -90,27 +89,33 @@ export default function PostsPage() {
         </div>
       </main>
 
-      <footer className="mx-auto max-w-3xl px-4 py-12">
-        <div className="flex flex-col items-center justify-between space-y-4 border-t border-gray-200 pt-8 sm:flex-row sm:space-y-0">
-          <p className="text-sm text-gray-500">
-            © 2024 Your Company. All rights reserved.
-          </p>
-          <div className="flex space-x-6">
-            <Link href="#" className="text-gray-500 hover:text-gray-900">
-              <Linkedin className="h-5 w-5" />
-              <span className="sr-only">LinkedIn</span>
+      <footer className="mx-auto mt-24 max-w-5xl px-4 pb-8">
+        <div className="flex items-center justify-between border-t border-gray-200 pt-8">
+          <p className="text-sm text-gray-500">© 2024</p>
+          <div className="flex gap-6">
+            <Link
+              href="https://www.linkedin.com/in/shubhayu-bhowmick"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-gray-500 hover:text-gray-900"
+            >
+              LinkedIn
             </Link>
-            <Link href="#" className="text-gray-500 hover:text-gray-900">
-              <Twitter className="h-5 w-5" />
-              <span className="sr-only">Twitter</span>
+            <Link
+              href="https://x.com/kinda_shub"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-gray-500 hover:text-gray-900"
+            >
+              Twitter
             </Link>
-            <Link href="#" className="text-gray-500 hover:text-gray-900">
-              <Github className="h-5 w-5" />
-              <span className="sr-only">GitHub</span>
-            </Link>
-            <Link href="#" className="text-gray-500 hover:text-gray-900">
-              <Youtube className="h-5 w-5" />
-              <span className="sr-only">YouTube</span>
+            <Link
+              href="https://github.com/Shubhayu-Bhowmick/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-gray-500 hover:text-gray-900"
+            >
+              GitHub
             </Link>
           </div>
         </div>

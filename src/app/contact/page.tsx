@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -126,6 +127,38 @@ export default function ContactPage() {
           </motion.div>
         </div>
       </div>
+
+      <footer className="mx-auto mt-24 max-w-5xl px-4 pb-8">
+        <div className="flex items-center justify-between border-t border-gray-200 pt-8">
+          <p className="text-sm text-gray-500">© 2024</p>
+          <div className="flex gap-6">
+            <Link
+              href="https://www.linkedin.com/in/shubhayu-bhowmick"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-gray-500 hover:text-gray-900"
+            >
+              LinkedIn
+            </Link>
+            <Link
+              href="https://x.com/kinda_shub"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-gray-500 hover:text-gray-900"
+            >
+              Twitter
+            </Link>
+            <Link
+              href="https://github.com/Shubhayu-Bhowmick/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-gray-500 hover:text-gray-900"
+            >
+              GitHub
+            </Link>
+          </div>
+        </div>
+      </footer>
 
       <AnimatePresence>
         {showPopup && (

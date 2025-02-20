@@ -80,16 +80,6 @@ export default function Newsletter() {
           {loading ? "Subscribing..." : "Subscribe"}
         </Button>
         {error && <p className="text-sm text-red-500">{error}</p>}
-        <p className="text-sm text-gray-500">
-          We care about your data. Read our{" "}
-          <a
-            href="/privacy"
-            className="text-gray-900 underline hover:text-gray-700"
-          >
-            privacy policy
-          </a>
-          .
-        </p>
       </form>
 
       <AnimatePresence>
